@@ -132,7 +132,7 @@ if __name__ == "__main__":
                np.array(train_losses))
     np.savetxt(project_dir / ('outputs/'+args.model+'/val_losses.txt'), np.array(val_losses))
     np.savetxt(project_dir / ('outputs/'+args.model+'/val_scores.txt'), np.array(val_scores))
-    torch.save(model.load_state_dict(), project_dir / ('outputs/'+args.model+'/model_state.pt'))
+    # torch.save(model.load_state_dict(), project_dir / ('outputs/'+args.model+'/model_state.pt'))
     sns.set()
     fig=sns.lineplot(range(train_losses),train_losses).get_figure()
     fig.save(project_dir / ('outputs/'+args.model+'/loss.jpg'),dpi=400)
