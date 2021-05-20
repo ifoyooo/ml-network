@@ -9,7 +9,6 @@ import torch
 from pathlib import Path
 
 
-
 # 获取数据集
 # 通过isTrain来判断到底是训练集还是测试集
 class ChallengeDataset(BaseDataset):
@@ -51,7 +50,7 @@ class ChallengeDataset(BaseDataset):
         return len(self.files)
 
 
-
+#更好的预处理化和更优的模型参数。
 def simple_transform(x):
     """Perform a simple preprocessing of the input light curve array
     Args:

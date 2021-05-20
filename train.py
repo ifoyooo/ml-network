@@ -22,20 +22,19 @@ if __name__ == "__main__":
     parser.add_argument("--lc_val_path",help="val path",type=str,default=pathlib.Path(__file__).parent.absolute()/"data/noisy_train/home/ucapats/Scratch/ml_data_challenge/training_set/noisy_train")
     parser.add_argument("--params_train_path",help="params_train_path",type=str,default=pathlib.Path(__file__).parent.absolute()/"data/params_train/home/ucapats/Scratch/ml_data_challenge/training_set/params_train")
     parser.add_argument("--params_val_path",help="params_val_path",type=str,default=pathlib.Path(__file__).parent.absolute()/"data/params_train/home/ucapats/Scratch/ml_data_challenge/training_set/params_train")
-    parser.add_argument("--train_size",type=int,default=1024)
-    parser.add_argument("--val_size",type=int,default=125600-1024)
+    parser.add_argument("--train_size",type=int,default=1256)
+    parser.add_argument("--val_size",type=int,default=128)
     parser.add_argument("--epochs",type=int,default=50)
     parser.add_argument("--save_from",type=int,default=10)
-    # parser.add_argument("--device",type=str,default="cpu" if torch.cuda.is_available()else "cuda")
-    parser.add_argument("--device",type=str,default="cpu")
+    parser.add_argument("--device",type=str,default="cpu" if torch.cuda.is_available()else "cuda")
+    # parser.add_argument("--device",type=str,default="cpu")
     parser.add_argument("--batch_size",type=int,default=128)
     parser.add_argument("--seed",type=int,default=0)
     parser.add_argument("--intput_dim",type=int,default=55*300)
     parser.add_argument("--output_dim",type=int,default=55)
-    parser.add_argument("--model",type=str,default="MLlinear")
-    parser.add_argument("--MLlinearlist",type=list,default=[55*300,1024,512,256])
-    parser.add_argument("--continue_train",type=bool,default=True)
-    parser.add_argument("--is_change",type=bool,default=False)
+    parser.add_argument("--model",type=str,default="Conv2d")
+    parser.add_argument("--MLlinearlist",type=list,default=[55*300,1024,256])
+    parser.add_argument("--continue_train",type=bool,default=False)
 
     args=parser.parse_args()
     
@@ -66,20 +65,20 @@ if __name__ == "__main__":
     if (args.model=="MLlinear"):
         model = MLLinear(args.MLlinearlist,args.output_dim).double().to(args.device)   
     if (args.model=="Conv2d"):
-        pass
+        model = SimpleConv().double().to(args.device)
     if (args.model=="Attention"):
         pass
 
 
     #加载模型参数
-    if args.continue_train and "model_state.pt" in os.listdir(project_dir / ('outputs/'+args.model)) and not args.is_change:
+    if args.continue_train and "model_state.pt" in os.listdir(project_dir / ('outputs/'+args.model)):
         model.load_state_dict(torch.load(project_dir / ('outputs/'+args.model+'/model_state.pt')))
 
     # Define Loss, metric and argsimizer
     loss_function = MSELoss()
     challenge_metric = ChallengeMetric()
     #优化器
-    opt = Adam(model.parameters())
+    opt = Adam(model.parameters(),lr=1e-2)
 
     # Lists to record train and val scores
     train_losses = []
@@ -110,20 +109,20 @@ if __name__ == "__main__":
             pred = model(item['lc'])
             loss = loss_function(item['target'], pred)
             score = challenge_metric.score(item['target'], pred)
-            val_loss += loss.detach().item()
-            val_score += score.detach().item()
-        val_loss /= len(loader_val)
-        val_score /= len(loader_val)
+            # val_loss += loss.detach().item()
+            # val_score += score.detach().item()
+        # val_loss /= len(loader_val)
+        # val_score /= len(loader_val)
         print('Training loss', round(train_loss, 6))
-        print('Val loss', round(val_loss, 6))
-        print('Val score', round(val_score, 2))
+        # print('Val loss', round(val_loss, 6))
+        # print('Val score', round(val_score, 2))
         train_losses += [train_loss]
-        val_losses += [val_loss]
-        val_scores += [val_score]
+        # val_losses += [val_loss]
+        # val_scores += [val_score]
 
-        if epoch >= args.save_from and val_score > best_val_score:
-            best_val_score = val_score
-            torch.save(model.state_dict(), project_dir / ('outputs/'+args.model+'/model_state.pt'))
+        # if epoch >= args.save_from and val_score > best_val_score:
+            # best_val_score = val_score
+            # torch.save(model.state_dict(), project_dir / ('outputs/'+args.model+'/model_state.pt'))
 
     np.savetxt(project_dir /('outputs/'+args.model+'/train_losses.txt'),
                np.array(train_losses))

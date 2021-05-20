@@ -128,7 +128,7 @@ class FastMLAttention(nn.Module):
         return attention @ inputs   # N, sampled_size, hidden_size
 
 
-# 多层线性感知机
+# 多层线性感知机 效果不好
 class MLLinear(nn.Module):
     
     def __init__(self, linear_size :list, output_size:int):
