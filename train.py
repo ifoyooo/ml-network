@@ -8,10 +8,13 @@ import pathlib
 import os
 from challenge_dataset import ChallengeDataset,simple_transform
 from score  import ChallengeMetric
+import seaborn as sns
 
 from networks import *
 
 
+__author__="ifoyooo"
+__email__="wangfuyun_000@foxmail.com"
 project_dir = pathlib.Path(__file__).parent.absolute()
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -19,9 +22,9 @@ if __name__ == "__main__":
     parser.add_argument("--lc_val_path",help="val path",type=str,default=pathlib.Path(__file__).parent.absolute()/"data/noisy_train/home/ucapats/Scratch/ml_data_challenge/training_set/noisy_train")
     parser.add_argument("--params_train_path",help="params_train_path",type=str,default=pathlib.Path(__file__).parent.absolute()/"data/params_train/home/ucapats/Scratch/ml_data_challenge/training_set/params_train")
     parser.add_argument("--params_val_path",help="params_val_path",type=str,default=pathlib.Path(__file__).parent.absolute()/"data/params_train/home/ucapats/Scratch/ml_data_challenge/training_set/params_train")
-    parser.add_argument("--train_size",type=int,default=512)
-    parser.add_argument("--val_size",type=int,default=512)
-    parser.add_argument("--epochs",type=int,default=100)
+    parser.add_argument("--train_size",type=int,default=1024)
+    parser.add_argument("--val_size",type=int,default=125600-1024)
+    parser.add_argument("--epochs",type=int,default=50)
     parser.add_argument("--save_from",type=int,default=10)
     # parser.add_argument("--device",type=str,default="cpu" if torch.cuda.is_available()else "cuda")
     parser.add_argument("--device",type=str,default="cpu")
@@ -31,6 +34,8 @@ if __name__ == "__main__":
     parser.add_argument("--output_dim",type=int,default=55)
     parser.add_argument("--model",type=str,default="MLlinear")
     parser.add_argument("--MLlinearlist",type=list,default=[55*300,1024,512,256])
+    parser.add_argument("--continue_train",type=bool,default=True)
+    parser.add_argument("--is_change",type=bool,default=False)
 
     args=parser.parse_args()
     
@@ -39,6 +44,8 @@ if __name__ == "__main__":
 
 
     #创建文件夹
+    if args.model not in os.listdir(project_dir/'outputs'):
+        os.makedirs(project_dir/('outputs/'+args.model))
    
     # Training data
     dataset_train = ChallengeDataset(args.lc_train_path, args.params_train_path, shuffle=True, start_ind=0,
@@ -57,8 +64,16 @@ if __name__ == "__main__":
     
     # 选择模型
     if (args.model=="MLlinear"):
-        model = MLLinear(args.MLlinearlist,args.output_dim).double().to(args.device)
+        model = MLLinear(args.MLlinearlist,args.output_dim).double().to(args.device)   
+    if (args.model=="Conv2d"):
+        pass
+    if (args.model=="Attention"):
+        pass
 
+
+    #加载模型参数
+    if args.continue_train and "model_state.pt" in os.listdir(project_dir / ('outputs/'+args.model)) and not args.is_change:
+        model.load_state_dict(torch.load(project_dir / ('outputs/'+args.model+'/model_state.pt')))
 
     # Define Loss, metric and argsimizer
     loss_function = MSELoss()
@@ -84,7 +99,6 @@ if __name__ == "__main__":
             pred = model(item['lc'])
             loss = loss_function(item['target'], pred)
             #args里里面引用了模型的参数，首先将参数清零，然后反向传播计算梯度，最后对模型参数进行更新。
-
             opt.zero_grad()
             loss.backward()
             opt.step()
@@ -109,13 +123,16 @@ if __name__ == "__main__":
 
         if epoch >= args.save_from and val_score > best_val_score:
             best_val_score = val_score
-            torch.save(model, project_dir / 'outputs/'+args.model+'/model_state.pt')
+            torch.save(model.state_dict(), project_dir / ('outputs/'+args.model+'/model_state.pt'))
 
-    np.savetxt(project_dir /'outputs/'+args.model+'/train_losses.txt',
+    np.savetxt(project_dir /('outputs/'+args.model+'/train_losses.txt'),
                np.array(train_losses))
-    np.savetxt(project_dir / 'outputs/'+args.model+'/val_losses.txt', np.array(val_losses))
-    np.savetxt(project_dir / 'outputs/'+args.model+'/val_scores.txt', np.array(val_scores))
-    torch.save(model, project_dir / 'outputs/'+args.model+'/model_state.pt')
+    np.savetxt(project_dir / ('outputs/'+args.model+'/val_losses.txt'), np.array(val_losses))
+    np.savetxt(project_dir / ('outputs/'+args.model+'/val_scores.txt'), np.array(val_scores))
+    # torch.save(model, project_dir / 'outputs/'+args.model+'/model_state.pt')
+    sns.set()
+    fig=sns.lineplot(range(train_losses),train_losses).get_figure()
+    fig.save(project_dir / ('outputs/'+args.model+'/loss.jpg'),dpi=400)
 
     
     
