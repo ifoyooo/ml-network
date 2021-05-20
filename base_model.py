@@ -10,13 +10,6 @@ class BaseModel(ABC):
     #这值各种模型，参数，优化器等等。
     def __init__(self,opt):
         pass
-
-
-    @staticmethod
-    def modify_commandline_options(parser,is_train):
-        return parser
-
-
     #三个抽象方法用于训练。
     @abstractmethod
     #输入数据
