@@ -9,6 +9,7 @@ import os
 from challenge_dataset import ChallengeDataset, simple_transform
 from score import ChallengeMetric
 import seaborn as sns
+from tqdm import tqdm
 
 from networks import *
 
@@ -32,7 +33,7 @@ if __name__ == "__main__":
     parser.add_argument("--params_val_path", help="params_val_path", type=str, default=pathlib.Path(
         __file__).parent.absolute()/"data/params_train/home/ucapats/Scratch/ml_data_challenge/training_set/params_train")
     parser.add_argument("--train_size", type=int, default=1256)
-    parser.add_argument("--val_size", type=int, default=125600)
+    parser.add_argument("--val_size", type=int, default=12560)
     parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument("--save_from", type=int, default=10)
     parser.add_argument("--device", type=str,
@@ -49,10 +50,12 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     model = SimpleConv().double().to(args.device)
+    print("load data!")
     dataset_val = ChallengeDataset(args.lc_train_path, args.params_train_path, shuffle=True, start_ind=0,
                                    max_size=args.val_size, transform=simple_transform, device=args.device, seed=args.seed)
-    valbatchsize = args.val_size//4
+    valbatchsize = 64
     loader_val = DataLoader(dataset_val, batch_size=valbatchsize)
+    print("load params!")
     if args.continue_train and "model_state.pt" in os.listdir(project_dir / ('outputs/'+args.model)):
         model.load_state_dict(torch.load(
             project_dir / ('outputs/'+args.model+'/model_state.pt')))
@@ -66,7 +69,7 @@ if __name__ == "__main__":
     val_loss = 0
     val_score = 0
     model.eval()
-    for k, item in enumerate(loader_val):
+    for k, item in tqdm(enumerate(loader_val)):
         pred = model(item['lc'])
         loss = loss_function(item['target'], pred)
         score = challenge_metric.score(item['target'], pred)

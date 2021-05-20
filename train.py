@@ -24,10 +24,10 @@ if __name__ == "__main__":
     parser.add_argument("--params_val_path",help="params_val_path",type=str,default=pathlib.Path(__file__).parent.absolute()/"data/params_train/home/ucapats/Scratch/ml_data_challenge/training_set/params_train")
     parser.add_argument("--train_size",type=int,default=1256)
     parser.add_argument("--val_size",type=int,default=128)
-    parser.add_argument("--epochs",type=int,default=50)
+    parser.add_argument("--epochs",type=int,default=70)
     parser.add_argument("--save_from",type=int,default=10)
-    parser.add_argument("--device",type=str,default="cuda" if torch.cuda.is_available()else "cpu")
-    # parser.add_argument("--device",type=str,default="cpu")
+    # parser.add_argument("--device",type=str,default="cuda" if torch.cuda.is_available()else "cpu")
+    parser.add_argument("--device",type=str,default="cpu")
     parser.add_argument("--batch_size",type=int,default=128)
     parser.add_argument("--seed",type=int,default=0)
     parser.add_argument("--intput_dim",type=int,default=55*300)
@@ -75,6 +75,7 @@ if __name__ == "__main__":
 
     #加载模型参数
     if args.continue_train and "model_state.pt" in os.listdir(project_dir / ('outputs/'+args.model)):
+        print("continue_train!")
         model.load_state_dict(torch.load(project_dir / ('outputs/'+args.model+'/model_state.pt')))
 
     # Define Loss, metric and argsimizer
@@ -131,7 +132,7 @@ if __name__ == "__main__":
                np.array(train_losses))
     np.savetxt(project_dir / ('outputs/'+args.model+'/val_losses.txt'), np.array(val_losses))
     np.savetxt(project_dir / ('outputs/'+args.model+'/val_scores.txt'), np.array(val_scores))
-    torch.save(model, project_dir / 'outputs/'+args.model+'/model_state.pt')
+    torch.save(model.load_state_dict(), project_dir / ('outputs/'+args.model+'/model_state.pt'))
     sns.set()
     fig=sns.lineplot(range(train_losses),train_losses).get_figure()
     fig.save(project_dir / ('outputs/'+args.model+'/loss.jpg'),dpi=400)

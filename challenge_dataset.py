@@ -60,9 +60,9 @@ def simple_transform(x):
         preprocessed array
     """
     out = x.clone()
-    out[:,:30]=0
+    # out[:,:30]=1
     # centering
     out -= 1.
     # rough rescaling
-    out /= 0.04
+    out /= 0.05
     return out
