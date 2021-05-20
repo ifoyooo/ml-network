@@ -26,7 +26,7 @@ if __name__ == "__main__":
     parser.add_argument("--val_size",type=int,default=128)
     parser.add_argument("--epochs",type=int,default=50)
     parser.add_argument("--save_from",type=int,default=10)
-    parser.add_argument("--device",type=str,default="cpu" if torch.cuda.is_available()else "cuda")
+    parser.add_argument("--device",type=str,default="cuda" if torch.cuda.is_available()else "cpu")
     # parser.add_argument("--device",type=str,default="cpu")
     parser.add_argument("--batch_size",type=int,default=128)
     parser.add_argument("--seed",type=int,default=0)
@@ -53,8 +53,11 @@ if __name__ == "__main__":
     # Validation data
     dataset_val = ChallengeDataset(args.lc_train_path, args.params_train_path, shuffle=True, start_ind=args.train_size,
                                  max_size=args.val_size, transform=simple_transform, device=args.device,seed=args.seed)    
-    loader_train = DataLoader(dataset_train, batch_size=args.batch_size, shuffle=True)
-    loader_val = DataLoader(dataset_val, batch_size=args.batch_size)
+    
+    trainbatchsize=args.train_size//4;
+    valbatchsize=args.val_size//4;
+    loader_train = DataLoader(dataset_train, batch_size=trainbatchsize, shuffle=True)
+    loader_val = DataLoader(dataset_val, batch_size=valbatchsize)
 
     print("-----load the trainset and valset successfully!-------")
 
@@ -78,7 +81,7 @@ if __name__ == "__main__":
     loss_function = MSELoss()
     challenge_metric = ChallengeMetric()
     #优化器
-    opt = Adam(model.parameters(),lr=1e-2)
+    opt = Adam(model.parameters())
 
     # Lists to record train and val scores
     train_losses = []
@@ -109,26 +112,26 @@ if __name__ == "__main__":
             pred = model(item['lc'])
             loss = loss_function(item['target'], pred)
             score = challenge_metric.score(item['target'], pred)
-            # val_loss += loss.detach().item()
-            # val_score += score.detach().item()
-        # val_loss /= len(loader_val)
-        # val_score /= len(loader_val)
+            val_loss += loss.detach().item()
+            val_score += score.detach().item()
+        val_loss /= len(loader_val)
+        val_score /= len(loader_val)
         print('Training loss', round(train_loss, 6))
-        # print('Val loss', round(val_loss, 6))
-        # print('Val score', round(val_score, 2))
+        print('Val loss', round(val_loss, 6))
+        print('Val score', round(val_score, 2))
         train_losses += [train_loss]
-        # val_losses += [val_loss]
-        # val_scores += [val_score]
+        val_losses += [val_loss]
+        val_scores += [val_score]
 
-        # if epoch >= args.save_from and val_score > best_val_score:
-            # best_val_score = val_score
-            # torch.save(model.state_dict(), project_dir / ('outputs/'+args.model+'/model_state.pt'))
+        if epoch >= args.save_from and val_score > best_val_score:
+            best_val_score = val_score
+            torch.save(model.state_dict(), project_dir / ('outputs/'+args.model+'/model_state.pt'))
 
     np.savetxt(project_dir /('outputs/'+args.model+'/train_losses.txt'),
                np.array(train_losses))
     np.savetxt(project_dir / ('outputs/'+args.model+'/val_losses.txt'), np.array(val_losses))
     np.savetxt(project_dir / ('outputs/'+args.model+'/val_scores.txt'), np.array(val_scores))
-    # torch.save(model, project_dir / 'outputs/'+args.model+'/model_state.pt')
+    torch.save(model, project_dir / 'outputs/'+args.model+'/model_state.pt')
     sns.set()
     fig=sns.lineplot(range(train_losses),train_losses).get_figure()
     fig.save(project_dir / ('outputs/'+args.model+'/loss.jpg'),dpi=400)
