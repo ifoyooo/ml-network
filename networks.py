@@ -1,5 +1,2 @@
-'''
-完成网络层
-'''
-
-
+from modules import *
+import torch.nn as nn
