@@ -2,4 +2,4 @@ data/*
 
 outputs/*
 
-result.txt
+*.txt
