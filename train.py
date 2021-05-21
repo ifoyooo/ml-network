@@ -22,8 +22,8 @@ if __name__ == "__main__":
     parser.add_argument("--lc_val_path",help="val path",type=str,default=pathlib.Path(__file__).parent.absolute()/"data/noisy_train/home/ucapats/Scratch/ml_data_challenge/training_set/noisy_train")
     parser.add_argument("--params_train_path",help="params_train_path",type=str,default=pathlib.Path(__file__).parent.absolute()/"data/params_train/home/ucapats/Scratch/ml_data_challenge/training_set/params_train")
     parser.add_argument("--params_val_path",help="params_val_path",type=str,default=pathlib.Path(__file__).parent.absolute()/"data/params_train/home/ucapats/Scratch/ml_data_challenge/training_set/params_train")
-    parser.add_argument("--train_size",type=int,default=1256)
-    parser.add_argument("--val_size",type=int,default=128)
+    parser.add_argument("--train_size",type=int,default=12600)
+    parser.add_argument("--val_size",type=int,default=512)
     parser.add_argument("--epochs",type=int,default=70)
     parser.add_argument("--save_from",type=int,default=10)
     # parser.add_argument("--device",type=str,default="cuda" if torch.cuda.is_available()else "cpu")
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     dataset_val = ChallengeDataset(args.lc_train_path, args.params_train_path, shuffle=True, start_ind=args.train_size,
                                  max_size=args.val_size, transform=simple_transform, device=args.device,seed=args.seed)    
     
-    trainbatchsize=args.train_size//4;
+    trainbatchsize=args.train_size//40;
     valbatchsize=args.val_size//4;
     loader_train = DataLoader(dataset_train, batch_size=trainbatchsize, shuffle=True)
     loader_val = DataLoader(dataset_val, batch_size=valbatchsize)
