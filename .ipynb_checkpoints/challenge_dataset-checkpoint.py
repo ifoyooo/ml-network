@@ -61,15 +61,11 @@ def simple_transform(x):
     """
     out = x.clone()
     # out[:,:30]=1
-    # centering 标准化因为均值为1，方差约为0.04.
+    # centering
     out -= 1.
     # rough rescaling
     out /= 0.05
     return out
 
 def my_transfrom(x):
-    out =x.clone()
-    out -=1;
-    out/=0.04
-    out = torch.exp(out)
-    return out
+    

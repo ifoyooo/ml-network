@@ -28,9 +28,9 @@ dataset_test = ChallengeDataset(testdir, None, shuffle=False, start_ind=0,
 loader_test = DataLoader(
     dataset_test, batch_size=64, shuffle=False)
 
-# model = SimpleConv().double().to("cuda"if torch.cuda.is_available() else "cpu")
+model = SimpleConv().double().to("cuda"if torch.cuda.is_available() else "cpu")
 
-model=SimpleConv().double().to("cuda")
+# model=SimpleConv().double().to("cuda")
 params=torch.load(
             project_dir / ('outputs/'+'Conv2d'+'/model_state.pt'))
 
