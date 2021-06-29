@@ -16,6 +16,7 @@ from networks import *
 #再训练这一次，然后保存模型参数，为当前的transfrom下的好的数据
 #尝试修改transform，试图提升性能。
 
+
 __author__="ifoyooo"
 __email__="wangfuyun_000@foxmail.com"
 project_dir = pathlib.Path(__file__).parent.absolute()
@@ -25,14 +26,14 @@ if __name__ == "__main__":
     parser.add_argument("--lc_val_path",help="val path",type=str,default=pathlib.Path(__file__).parent.absolute()/"data/noisy_train/home/ucapats/Scratch/ml_data_challenge/training_set/noisy_train")
     parser.add_argument("--params_train_path",help="params_train_path",type=str,default=pathlib.Path(__file__).parent.absolute()/"data/params_train/home/ucapats/Scratch/ml_data_challenge/training_set/params_train")
     parser.add_argument("--params_val_path",help="params_val_path",type=str,default=pathlib.Path(__file__).parent.absolute()/"data/params_train/home/ucapats/Scratch/ml_data_challenge/training_set/params_train")
-    parser.add_argument("--train_size",type=int,default=20000)
-    parser.add_argument("--val_size",type=int,default=8000)
-    parser.add_argument("--epochs",type=int,default=70)
+    parser.add_argument("--train_size",type=int,default=32768)
+    parser.add_argument("--val_size",type=int,default=16384)
+    parser.add_argument("--epochs",type=int,default=10)
     parser.add_argument("--save_from",type=int,default=3)
     parser.add_argument("--device",type=str,default="cuda" if torch.cuda.is_available()else "cpu")
     # parser.add_argument("--device",type=str,default="cpu")
     parser.add_argument("--batch_size",type=int,default=128)
-    parser.add_argument("--seed",type=int,default=0)
+    parser.add_argument("--seed",type=int,default=2048)
     parser.add_argument("--intput_dim",type=int,default=55*300)
     parser.add_argument("--output_dim",type=int,default=55)
     parser.add_argument("--model",type=str,default="Conv2d")
@@ -57,9 +58,9 @@ if __name__ == "__main__":
     dataset_val = ChallengeDataset(args.lc_train_path, args.params_train_path, shuffle=True, start_ind=args.train_size,
                                  max_size=args.val_size, transform=simple_transform, device=args.device,seed=args.seed)    
     
-    trainbatchsize=args.train_size//120;
+    trainbatchsize=args.train_size//128;
     
-    valbatchsize=args.val_size//60;
+    valbatchsize=args.val_size//64;
     loader_train = DataLoader(dataset_train, batch_size=trainbatchsize, shuffle=True)
     loader_val = DataLoader(dataset_val, batch_size=valbatchsize)
 
@@ -112,7 +113,8 @@ if __name__ == "__main__":
             opt.step()
             train_loss += loss.detach().item()
         train_loss = train_loss / len(loader_train)
-        #eval要在测试之前，否则的话即使不训练，也会影响参数。
+        #eval要在测试之前，否则的话即使不训练，
+        # 也会影响参数。
         model.eval() #
         for k, item in enumerate(loader_val):
             pred = model(item['lc'])
@@ -140,8 +142,8 @@ if __name__ == "__main__":
 
     # torch.save(model.load_state_dict(), project_dir / ('outputs/'+args.model+'/model_state.pt'))
     sns.set()
-    fig=sns.lineplot(range(train_losses),train_losses).get_figure()
-    fig.save(project_dir / ('outputs/'+args.model+'/loss.jpg'),dpi=400)
+    fig=sns.lineplot(range(len(train_losses)),train_losses).get_figure()
+    fig.savefig(project_dir / ('outputs/'+args.model+'/loss.jpg'),dpi=400)
 
     
     

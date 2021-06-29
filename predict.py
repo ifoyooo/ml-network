@@ -44,6 +44,7 @@ print("begin:")
 results=None
 for key,value in tqdm(enumerate(loader_test)):
     pred=model(value["lc"])
+    
     pred=pred.cpu().detach().numpy()
     if type(results)!=np.ndarray:
         results=pred
