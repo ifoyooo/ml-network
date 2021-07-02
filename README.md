@@ -1,3 +1,7 @@
 # ml-network
-一个神经网络问题的良好实践练习
-practice programming with pytorch.
+This is my  source code for the data prediction Ariel ML Data Challenge.
+
+I'm in 11th place with name ifoyooo.
+
+[Leader Board (ariel-datachallenge.space)](https://www.ariel-datachallenge.space/ML/leaderboard/)
+
